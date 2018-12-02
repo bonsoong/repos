@@ -1,0 +1,28 @@
+1. 디렉토리 : /usr/local/java/jdk1.7.0_80/bin
+2. 프로파일 자바 경로 설정 : 
+
+각 사용자 별 home 디렉토리
+.bash_profile
+JAVA_HOME=/usr/local/java/jdk1.7.0_80
+export JAVA_HOME
+CATALINA_HOME=/usr/local/tomcat7
+export CATALINA_HOME
+PATH=$JAVA_HOME/bin:$CATALINA_HOME/bin:$PATH
+export PATH
+
+
+3. 공통 설정 : /etc/profile
+JAVA_HOME=/usr/local/java/jdk1.7.0_80
+export JAVA_HOME
+CATALINA_HOME=/usr/local/tomcat7
+export CATALINA_HOME
+PATH=$JAVA_HOME/bin:$CATALINA_HOME/bin:$PATH
+export PATH
+
+### NEW VERSION
+JAVA_HOME=/app/jdk1.7.0_80
+export JAVA_HOME
+CATALINA_HOME=/app/tomcat
+export CATALINA_HOME
+PATH=$JAVA_HOME/bin:$CATALINA_HOME/bin:$PATH
+export PATH

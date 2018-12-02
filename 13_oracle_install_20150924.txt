@@ -1,0 +1,319 @@
+### oracle 설정 ###
+### 설치 디렉토리 : 
+# /app
+# /app/oracle
+# 작성일 : 2015.09.24
+# 작성인 : 구본숭
+
+1. 디렉토리 생성
+cd app
+mkdir oracle
+
+1. centos 6.1 설치 (설치가 끝난 시점에 6.2 버전이 올라왔네요..)
+OS를 다운로드 받습니다. http://wiki.centos.org/Download 
+CD/DVD로 부팅할 경우 Linux 설치 프로그램(아나콘다)가 자동으로 구동되니 Next 로 진행하시면 되고,
+Network install 인 경우
+Install image를 다운받을 경로를 적어줘야 합니다.
+i386 경로   http://isoredirect.centos.org/centos/6.1/os/i386/images/install.img
+x86_64 경로 http://isoredirect.centos.org/centos/6.1/os/x86_64/images/install.img
+
+설치 유용을 묻는 화면에서 Desktop 버전을 설치(oracle 설치는 x-window 화면에서만 구동되니 꼭 Desktop 버전을 선택해야 합니다.)
+하위 "상세 패키지 선택"을 선택하여 Server 군은 모두 설치하고 기타 필요한 패키지를 선택합니다.
+
+이렇게 Next -> Next로 진행하면 무리없이 설치 완료됩니다.
+
+1.1 환경 설정하기
+centos 는 기본적으로 ssh port (22)을 제외하고 모두 막혀있습니다.
+
+1.1.1 ftp client 설치
+yum install ftp <-- ftp client 설치 (꼭 설치할 필요는 없음)
+
+1.1.2 방화벽 port 허용 (/etc/sysconfig/iptables)
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 21 -j ACCEPT     <-- FTP 접속을 위해 허용
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 20 -j ACCEPT     <-- FTP Passive mode port 허용
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT  <-- Tomcat 접속을 위해 허용
+
+1.1.3 방화벽 재시작
+service /etc/rc.d/init.d/iptables restart
+
+1.1.4 FTP Server 기동
+service vsftpd start
+*) suse linux 의 경우 커널상에 write 퍼미션을 줘야 함!
+setsebool -P ftp_home_dir=1
+
+
+2. Oracle 11g r2 버전 설치
+
+   http://www.oracle.co.kr -> downloads -> Database 11g 를 선택
+   i386인 경우 Linux x86의 두개의 설치 파일을 다운로드 받고
+   x86_64인 경우 Linux x86-64의 두개의 설치 파일을 다운로드 받습니다.
+
+   2.1 oracle 계정 추가 ( root 계정으로 작업 )
+        groupadd oinstall
+	groupadd dba
+	useradd -g ointsll -G dba -d /oracle oracle
+	passwd oracle <-- 이하 패스워드를 설정합니다.
+
+	계정 추가가 끝났으면, 디렉토리의 소유자를 oracle 로 변경합니다.
+
+	su - oracle
+	chown -R oracle.dba /oracle
+	chmod -R 755 /oracle
+
+   2.2 CentOS 설정 변경 (/etc/redhat-release)
+        cp /etc/redhat-release /etc/redhat-release.old <-- 설정 파일 백업 ( 이하 설정 파일 변경시 이와 같이 원본 파일 백업 )
+	vi /etc/redhat-release 
+
+	파일을 열어,
+	"CentOS release 6.1 (Final)" 이 부분을 "redhat-4" 로 바꿉니다.
+
+   2.3 Host 설정 변경 (/etc/hosts)
+         vi /etc/hosts 파일을 열어 다음 호스트명을 추가합니다.
+	 192.168.0.35 ora11r2
+
+   2.4 커널 파라미터 수정 (/etc/sysctl.conf)
+         vi /etc/sysctl.conf 파일을 열어 다음 부분을 추가/수정 합니다.
+	 
+	 fs.aio-max-nr = 1048576
+	 fs.file-max = 6815744
+	 
+	 kernel.shmall = 2097152
+	 kernel.shmmax = 536870912
+	 kernel.shmmni = 4096
+	 kernel.sem = 250 32000 100 128
+
+         net.ipv4.ip_local_port_range = 9000 65500
+	 net.core.rmem_default = 262144
+	 net.core.rmem_max = 4194304
+	 net.core.wmem_default = 262144
+	 net.core.wmem_max = 1048586
+
+	 추가/수정을 완료한 후 설정값을 변경합니다.
+	 sysctl -p <-- 에러 메세지가 나오면 값을 다시 확인/수정
+
+   2.5 설치할 사용자의 Resource Limit 값 확인 수정 (/etc/security/limits.conf)
+         vi /etc/security/limits.conf
+
+	oracle soft nproc 2047
+	oracle hard nproc 16384
+	oracle soft nofile 1024
+	oracle hard nofile 65536
+
+   2.6 로그인 파일 편집 (/etc/pam.d/login)
+        vi /etc/pam.d/login
+	
+	다음을 추가한다.
+	session required pam_limits.so
+   2.7 시스템을 원복상태로 되돌리는 프로세서 중지(/etc/selinux/config)
+        vi /etc/selinux/config 
+
+	다음을 변경합니다.
+	SELINUX=disabled
+ 
+   2.8 oracle 계정 설정(~/.bash_profile)
+        su - oracle <-- 계정 변경
+	
+	# ------------------------- START ---------------------------------
+	vi .bash_profile 
+	다음과 같이 추가합니다.
+
+	# .bash_profile
+
+	# Get the aliases and functions
+	if [ -f ~/.bashrc ]; then
+		. ~/.bashrc
+	fi
+
+	# User specific environment and startup programs
+
+	export PATH=$PATH:$HOME/bin
+
+	export TMP=/tmp
+	export TMPDIR=$TMP
+	export ORACLE_BASE=/oracle/app/oracle
+	export ORACLE_HOME=$ORACLE_BASE/product/11.1.0/db_1
+	export ORACLE_HOME_LISTNER=$ORACLE_HOME/bin/lsnrctl
+	export ORACLE_SID=ora11
+	export PATH=$PATH:$ORACLE_HOME/bin
+	export NLS_LANG=American_america.KO16KSC5601
+
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ORACLE_HOME/lib
+	export LD_LIBRARY=$LD_LIBRARY:.:$ORACLE_HOME/lib
+
+	export LANG=C
+
+	if[ $USER = "oracle" ]; then
+		if[ $SHELL = "/bin/ksh" ]; then
+			ulimit -p 16384
+			ulmin -n 65536
+		else
+			ulimit -u 16384 -n 65536
+		fi
+	fi
+	# ------------------------- END -----------------------------------
+
+   2.9 oracle 설치시 필수 패키지 설치
+	 yum list binutils-2* compat-libstdc++-33* elfutils-libelf* gcc-4.* gcc-c++-4.* glibc-2.* glibc-common-2.* glibc-devel-2.* glibc-headers-2.* ksh* libaio-0.* libaio-devel-0.* libgomp-4.* libgcc-4.* libstdc++-4.* libstdc++-devel-4.* make-3.* sysstat-7.* unixODBC-2.* unixODBC-devel-2.* pdksh*
+         yum install binutils-2* compat-libstdc++-33* elfutils-libelf* gcc-4.* gcc-c++-4.* glibc-2.* glibc-common-2.* glibc-devel-2.* glibc-headers-2.* ksh* libaio-0.* libaio-devel-0.* libgomp-4.* libgcc-4.* libstdc++-4.* libstdc++-devel-4.* make-3.* sysstat-7.* unixODBC-2.* unixODBC-devel-2.* pdksh*
+
+	 대부분 잘 설치되나 dependency 에러를 뱉어내면 설치되지 않는 패키지는 수동으로 설치해야 한다.
+	 
+	 pdksh 같은 패키지는 ksh과의 dependency 문제로 설치되지 않는다.
+	 http://rpm.pbone.net/index.php3/stat/4/idpl/2398776/com/pdksh-5.2.14-8.i386.rpm.html  <-- 에서 rpm 버전을 다운받는다.
+
+	 rpm -Uvh --nodeps pdksh-5.2.14-8.i386.rpm <-- nodep 옵션으로 dependency 무시하고 설치하도록 한다.
+
+	 (* 이부분에서 모든 패키지를 완벽하게 설치하지 않고 건너뛰면 Oracle이 설치는 되나, 기동이 되지 않는다.)
+
+   2.10 kernel 파라미터를 변경하였기에 시스템 reboot
+        reboot <-- 명령어를 시스템 재기동
+
+   2.11 Oracle 설치파일 install
+        두개의 설치파일을 같은 디렉토리에 둔다.
+	unzip linux_11gR2_database_1of2.zip
+	unzip linux_11gR2_database_2of2.zip
+	파일을 풀면 database 라는 디렉토리가 생기고 들어가면 runInstaller 파일이 있다.
+
+	x-window의 Gnome 화면으로 들어가서 Terminal을 열고 ./runInstaller 를 실행시킨다.
+        oracle install 프로그램이 구동되고 총 11단계에 걸쳐 설치한다.
+	앞의 과정이 문제가 없었다면 별 무리없이 설치가 끝난다.
+
+   2.12 init[SID].ora 파일 설정
+        설치 후 아무런 세팅없이 sqlplus 를 실행하면 init[SID].ora 파일 오류가 발생한다.
+        cd $ORACLE_HOME 으로 이동한다.
+	echo $ORACLE_SID 를 치면 나오는게 설정된 SID 값이다.
+	디렉토리상에 샘플로 존재하는 init.ora 파일을 복사한다.
+	cp init.ora initora11.ora
+
+	vi initora11.ora 파일을 연다.
+
+	a) <ORACLE_BASE> 되어 있는 부분을 echo $ORACLE_BASE 의 값으로 모두 바꿔준다 (절대경로임)
+	b) 같은 디렉토이에 있는 spfileorcl.ora 파일을 열어보면 "control_files" 란 부분에 두개의 파일 경로가 있다.
+	    /oracle/app/oracle/oradata/orcl/control01.ctl
+	    /oracle/app/oracle/flash_recovery_area/orcl/control02.ctl
+	    이 부분을 initora11.org 파일의 control_files 부분에 세팅한다.
+	    control_files = (/oracle/app/oracle/oradata/orcl/control01.ctl, /oracle/app/oracle/flash_recovery_area/orcl/control02.ctl)
+
+	    이 부분이 틀리면 oracle이 기동은 되나 database mount 가 되지 않는다.
+
+   2.13 tnsnames.ora 파일 설정 ($ORACLE_HOME/network/admin/tnsnames.org)
+        tnsping orcl 로 리스너 기동상태 확인
+	ok가 떨어지지 않으면,
+	lsnrctl start <-- 리스너 기동
+	기동시 에러가 발생하면,
+	vi $ORACLE_HOME/network/admin/tnsnames.org <-- 열어 파일 편집
+
+	ORCL =
+	  (DESCRIPTION =
+	    (ADDRESS = (PROTOCOL = TCP)(HOST = ora11r2)(PORT = 1521))
+	    (CONNECT_DATA =
+	      (SERVER = DEDICATED)
+	      (SERVICE_NAME = orcl)
+	    )
+	  )
+
+	  위 부분을 추가한다.
+
+   2.14 oracle 서버 기동
+	[oracle@ora11r2 ~]$ sqlplus /nolog
+	SQL*Plus: Release 11.2.0.1.0 Production on Fri Dec 23 14:23:15 2011
+	Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+
+	SQL> conn /as sysdba
+	Connected to an idle instance.
+	SQL> startup
+	ORACLE instance started.
+
+	Total System Global Area 1071333376 bytes
+	Fixed Size		    1341312 bytes
+	Variable Size		  620759168 bytes
+	Database Buffers	  444596224 bytes
+	Redo Buffers		    4636672 bytes
+	Database mounted.
+	Database opened.
+
+        위 처럼 나오면 Oracle 서버 정상 기동 되는것 임
+
+   2.15 사용자 추가
+        create tablespace ts_smartcarbon 
+	datafile '/oracle/app/oracle/oradata/orcl/ts_smartcarbon.dbf' 
+	size 100M autoextend on next 10M;
+	
+	create temporary tablespace ts_smartcarbon_temp
+	tempfile '/oracle/app/oracle/oradata/orcl/ts_smartcarbon_temp.dbf' 
+	size 10M extent management local uniform size 120k;
+
+	create user smartcarbon identified by smartcarbon 
+	default tablespace ts_smartcarbon 
+	temporary tablespace ts_smartcarbon_temp;
+	
+	grant resource,connect to smartcarbon;
+
+
+3. Tomcat 설치
+
+   http://tomcat.apache.org -> downloads -> 7.0.23 -> Binary Distributions -> Core -> tar.gz 을 다운로드
+   압축을 풉니다.
+   tar zxvf apache-tomcat-7.0.23.tar.gz
+   설치 디렉토리 생성 및 이동
+   mv apache-tomcat-7.0.23 ~smartcarbon/tomcat 
+
+   3.1 JDK Path 확인
+       find / -name javac 로 어느 위치에 jdk 가 설치 되었는지 확인
+
+       [smartcarbon@ora11r2 source]$ find / -name javac
+       /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0/bin/javac
+
+   3.2 profile 환경 설정 (.bash_profile)
+       vi .bash_profile 에 tomcat을 위한 환경 설정 등록
+
+       export JAVA_HOME= /usr/lib/jvm/java-1.6.0-openjdk-1.6.0.0
+       export CATALINA_HOME=/home/smartcarbon/tomcat
+       export CLASSPATH=.:$JAVA_HOME/lib/tools.jar:$CATALINA_HOME/lib/jsp-api.jar:$CATALINA_HOME/lib/servlet-api.jar
+       export PATH=$PATH:$JAVA_HOME/bin:$CATALINA_HOME/bin
+
+   3.3 tomcat 기동 및 확인
+       cd $CATALINA_HOME/bin 으로 이동
+       ./startup.sh 실행 후 브라우져로 확인 http://localhost:8080
+
+
+
+
+
+
+--------------------------------------------------------------------------------------
+추가 작성
+--------------------------------------------------------------------------------------
+
+
+1.  테이블 데이터 파일 경로 확인
+
+SELECT name FROM v$datafile;
+
+
+
+2. 테이블 스페이스 용량 확인
+
+SELECT    A.TABLESPACE_NAME "테이블스페이스명",
+           (A.BYTES - B.FREE)    "사용공간",
+            B.FREE                 "여유 공간",
+            A.BYTES                "총크기",
+            TO_CHAR( (B.FREE / A.BYTES * 100) , '999.99')||'%' "여유공간"
+      FROM
+       ( SELECT FILE_ID, TABLESPACE_NAME, SUBSTR(FILE_NAME,1,200) FILE_NM, SUM(BYTES) BYTES 
+         FROM DBA_DATA_FILES
+         GROUP BY FILE_ID,TABLESPACE_NAME,SUBSTR(FILE_NAME,1,200)
+       ) A,
+       ( SELECT TABLESPACE_NAME, FILE_ID, SUM(NVL(BYTES,0)) FREE 
+         FROM DBA_FREE_SPACE
+        GROUP BY TABLESPACE_NAME, FILE_ID
+       ) B
+      WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.FILE_ID = B.FILE_ID
+
+
+
+3. 테이블 스페이스 사이즈 변경
+
+ALTER DATABASE DATAFILE '/oracle/app/oracle/oradata/orcl/SGSDBA.DBF' RESIZE 1048576000;
+ALTER DATABASE DATAFILE '/oracle/app/oracle/oradata/orcl/SGSDBA.DBF' AUTOEXTEND on NEXT 100M MAXSIZE UNLIMITED;
+

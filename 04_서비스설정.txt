@@ -1,0 +1,163 @@
+<systemctl 명령 사용>
+1.서비스 노출 상태 변경
+systemctl [enable|disable] [서비스이름]
+2.서비스 시작 중지
+systemctl [서비스이름] start/stop
+3.서비스 상태 보기
+systemctl status [서비스이름]
+
+<apache 설치>
+yum -y install httpd
+패키지에 가깝게 설치 
+yum -y groupinstall "Web Server"
+
+Apache(아파치) Tomcat(톰켓) 연동 하기(mod_proxy_ajp)
+
+Apache2.2부터는 mod_jk 모듈이 아니 mod_proxy_ajp 모듈을 제공합니다.
+
+ 
+
+아파치디렉토리/conf/httpd.conf 수정 하거나 또는 설정파일을 따로 만들어서 include 해도 된다. 아래 내용 들을 찾아 보고 없으면 추가 하면 된다.
+
+ 
+
+1. proxy_ajp_module 이용할 경우
+
+LoadModule proxy_module         modules/mod_proxy.so 
+LoadModule proxy_connect_module modules/mod_proxy_connect.so
+LoadModule proxy_http_module    modules/mod_proxy_http.so
+LoadModule proxy_ftp_module     modules/mod_proxy_ftp.so
+LoadModule proxy_ajp_module     modules/mod_proxy_ajp.so
+
+ 
+
+ProxyRequests Off
+<Proxy *>
+    Order deny,allow
+    Allow from all
+    SetEnv force-proxy-request-1.0 1
+    SetEnv proxy-nokeepalive 1
+    SetEnv proxy-initial-not-pooled 1
+</Proxy>
+
+
+ProxyPass / ajp://localhost:8009
+ProxyPassReverse / ajp://localhost:8009
+
+
+2. mod_rewirte 이용할 경우
+
+ 
+
+LoadModule proxy_module         modules/mod_proxy.so
+LoadModule proxy_connect_module modules/mod_proxy_connect.so
+LoadModule proxy_http_module    modules/mod_proxy_http.so
+LoadModule proxy_ftp_module     modules/mod_proxy_ftp.so
+LoadModule proxy_ajp_module     modules/mod_proxy_ajp.so
+LoadModule rewrite_module      modules/mod_rewrite.so
+
+ 
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} .\(htm|html|xhtml|js|css|jpeg|gif|png|swf)$
+RewriteRule (.*) - [L]
+RewriteRule (.*) ajp://localhost:8009$1 [P]
+
+ 
+
+3. mod_proxy 사용
+
+LoadModule proxy_module         modules/mod_proxy.so 
+LoadModule proxy_connect_module modules/mod_proxy_connect.so
+LoadModule proxy_http_module    modules/mod_proxy_http.so
+LoadModule proxy_ftp_module     modules/mod_proxy_ftp.so
+
+
+ProxyRequests Off
+<Proxy *>
+    Order deny,allow
+    Allow from all
+    SetEnv force-proxy-request-1.0 1
+    SetEnv proxy-nokeepalive 1
+    SetEnv proxy-initial-not-pooled 1
+</Proxy>
+
+
+ProxyPass / http://localhost:7080
+ProxyPassReverse / http://localhost:7080
+
+ 
+
+4. 버츄얼호스팅(virtual host)을 이용할 경우
+
+
+LoadModule proxy_module         modules/mod_proxy.so
+LoadModule proxy_connect_module modules/mod_proxy_connect.so
+LoadModule proxy_http_module    modules/mod_proxy_http.so
+LoadModule proxy_ftp_module     modules/mod_proxy_ftp.so
+LoadModule proxy_ajp_module     modules/mod_proxy_ajp.so
+LoadModule rewrite_module      modules/mod_rewrite.so
+
+ 
+
+# mod_proxy_ajp 사용
+
+<VirtualHost *:8080>
+    ServerAdmin admin@NAS
+    DocumentRoot "/ROOT"
+    ServerName jlancer.net
+    ServerAlias www.jlancer.net
+    ErrorLog "logs/jlancer.net-error_log"
+    CustomLog "logs/jlancer.net-acces_log" common
+    ProxyRequests Off
+    <Proxy *>
+        Order deny,allow
+        Allow from all
+    </Proxy>
+    ProxyPass / ajp://localhost:8009/
+    ProxyPassReverse / ajp://localhost:8009/
+    ProxyPreserveHost On
+
+   </VirtualHost>
+
+
+# mod_rewrite 사용
+
+<VirtualHost *:8080>
+    ServerAdmin admin@NAS
+    DocumentRoot "ROOT"
+    ServerName jlancer.net
+    ServerAlias www.jlancer.net
+    ErrorLog "logs/jlancer.net-error_log"
+    CustomLog "logs/jlancer.net-acces_log" common
+
+
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} .\(htm|html|xhtml|js|css|jpeg|gif|png|swf)$
+    RewriteRule (.*) - [L]
+    RewriteRule (.*) ajp://localhost:8009$1 [P]
+</VirtualHost>
+
+
+# mod_proxy 사용
+
+<VirtualHost *:8080>
+    ServerAdmin admin@NAS
+    DocumentRoot "/ROOT"
+    ServerName jlancer.net
+    ServerAlias www.jlancer.net
+    ErrorLog "logs/jlancer.net-error_log"
+    CustomLog "logs/jlancer.net-acces_log" common
+    ProxyRequests Off
+    <Proxy *>
+        Order deny,allow
+        Allow from all
+    </Proxy>
+    ProxyPass / http://localhost:7080/
+    ProxyPassReverse / http://localhost:7080/
+    ProxyPreserveHost On
+
+   </VirtualHost>
+
+
+ 

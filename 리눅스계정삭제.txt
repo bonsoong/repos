@@ -1,0 +1,35 @@
+계정+홈 디렉토리 삭제
+명령어
+
+userdel -r 계정명
+
+실행예시
+
+[root@zetawiki ~]# useradd testuser
+[root@zetawiki ~]# cat /etc/passwd | grep testuser
+testuser:x:500:500::/home/testuser:/bin/bash
+
+→ 테스트를 위해 계정 생성
+
+[root@zetawiki ~]# userdel -r testuser
+[root@zetawiki ~]# cat /etc/passwd | grep testuser
+[root@zetawiki ~]# ll /home | grep testuser
+
+→ 계정 삭제되고, 홈폴더도 삭제됨
+계정만 삭제
+명령어
+
+userdel 계정명
+
+실행예시
+
+[root@zetawiki ~]# useradd testuser
+[root@zetawiki ~]# cat /etc/passwd | grep testuser
+testuser:x:500:500::/home/testuser:/bin/bash
+
+→ 테스트를 위해 계정 생성
+
+[root@zetawiki ~]# userdel testuser
+[root@zetawiki ~]# cat /etc/passwd | grep testuser
+[root@zetawiki ~]# ll /home | grep testuser
+drwx------  4  500  500  4096 2012-06-12 09:30 testuser

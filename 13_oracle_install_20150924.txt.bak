@@ -1,0 +1,10 @@
+### oracle 설정 ###
+### 설치 디렉토리 : 
+# /app
+# /app/oracle
+# 작성일 : 2015.09.24
+# 작성인 : 구본숭
+
+1. 디렉토리 생성
+cd app
+mkdir oracle

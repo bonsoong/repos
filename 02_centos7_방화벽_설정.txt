@@ -1,0 +1,80 @@
+네트워크 설정 시 : nmtui
+
+1. centos 7 부터는 iptables를 안쓰고 firewalld를 사용한다.
+[root@centos7 zones]# more public.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+
+<zone>
+
+  <short>Public</short>
+
+  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are ac
+
+cepted.</description>
+
+  <service name="dhcpv6-client"/>
+
+  <service name="ssh"/>
+
+</zone>
+
+허용하고자 하는 port 열기
+
+# firewall-cmd --permanent --zone=public --add-port=80/tcp
+확인
+# cat public.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+
+<zone>
+
+  <short>Public</short>
+
+  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+
+  <service name="dhcpv6-client"/>
+
+  <service name="ssh"/>
+
+  <port protocol="tcp" port="80"/>
+
+</zone>
+
+# firewall-cmd --list-ports
+
+허용한 port 삭제하기
+
+# firewall-cmd --permanent --zone=public --remove-port=80/tcp
+
+리로드로 적용
+
+# firewall-cmd --reload
+
+** 요약 **
+
+centos7 부터 firewalld 로 변경 ( iptables 사용가능 )
+
+zone 별로 적용 할 수 있다. default값으로 public zone 설정
+
+# firewall-cmd --permanent --zone=public --add-port=80/tcp <추가>
+
+# firewall-cmd --permanent --zone=public --remove-port=80/tcp <삭제>
+
+# cat /etc/firewalld/zones/public.xml 에서 값 확인 가능
+
+
+** firewalld 켜고 / 끄기 **
+# systemctl start firewalld
+# systemctl enable firewalld
+
+# systemctl stop firewalld
+# systemctl disable firewalld
+
+** 기타 확인 명령어 **
+# firewall-cmd --state   ( 방화벽 상태 확인 )
+# firewall-cmd --get-active-zones (활성화된 zone 목록 )
+# firewall-cmd --get-service (현재 존재하는 서비스 목록 )
+# firewall-cmd --zone=public --list-services ( public zone 에 있는 서비스 목록 )
+
+참조 : https://oracle-base.com/articles/linux/linux-firewall-firewalld

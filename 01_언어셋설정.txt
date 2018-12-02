@@ -1,0 +1,83 @@
+OS : CentOS 6.X x86_64
+
+ 
+
+1. 로케일 적용
+
+로케일 확인한다.
+# locale
+LANG=ko_KR.eucKR
+LC_CTYPE="ko_KR.eucKR"
+LC_NUMERIC="ko_KR.eucKR"
+LC_TIME="ko_KR.eucKR"
+LC_COLLATE="ko_KR.eucKR"
+LC_MONETARY="ko_KR.eucKR"
+LC_MESSAGES="ko_KR.eucKR"
+LC_ALL=
+
+현재 eucKR로 되어 있는 것을 변경하기 위해 /etc/sysconfig/i18n 파일을 아래와 변경한다.
+LANG="ko_KR.eucKR"
+SUPPORTED="en_US:en:ko_KR:euckr:ko_KR:ko"
+
+LANG="ko_KR.UTF-8"
+SUPPORTED="ko_KR.UTF-8:ko_KR:ko:en_US.UTF-8:en_US:en"
+
+변경 후 재부팅한다.
+
+또는
+
+재부팅없이 바로 적용하기 위해 아래 명령 실행한다.
+# source /etc/sysconfig/i18n
+
+
+UTF-8로 변경된 것을 확인한다.
+# locale
+LANG=ko_KR.UTF-8
+LC_CTYPE="ko_KR.UTF-8"
+LC_NUMERIC="ko_KR.UTF-8"
+LC_TIME="ko_KR.UTF-8"
+LC_COLLATE="ko_KR.UTF-8"
+LC_MONETARY="ko_KR.UTF-8"
+LC_MESSAGES="ko_KR.UTF-8"
+LC_PAPER="ko_KR.UTF-8"
+LC_NAME="ko_KR.UTF-8"
+LC_ADDRESS="ko_KR.UTF-8"
+LC_TELEPHONE="ko_KR.UTF-8"
+LC_MEASUREMENT="ko_KR.UTF-8"
+LC_IDENTIFICATION="ko_KR.UTF-8"
+LC_ALL=ko_KR.UTF-8
+​
+
+2. 쉘, vi 적용
+
+/etc/bashrc에 아래의 내용을 추가한다.
+export LANG="ko_KR.UTF-8"
+export LC_ALL="ko_KR.UTF-8"
+ 
+
+/etc/vimrc, /etc/virc에 아래의 내용을 변경한다.
+if v:lang =~ "utf8$" || v:lang =~ "UTF-8$"
+   set fileencodings=ucs-bom,utf-8,latin1
+endif
+
+if v:lang =~ "utf8$" || v:lang =~ "UTF-8$"
+    set fileencodings=utf-8,euc-kr
+endif
+
+변경 후 재부팅한다.
+
+또는
+
+재부팅없이 바로 적용하기 위해 아래 명령 실행한다.
+# bash
+
+3. cron 적용
+
+/etc/crontab에 아래의 내용을 추가한다.
+LANG=ko_KR.UTF-8
+LC_ALL=ko_KR.UTF-8
+
+cron 재시작한다.
+# service crond restart 
+
+[출처] [CentOS]UTF-8 로케일 변경|작성자 붉은콩

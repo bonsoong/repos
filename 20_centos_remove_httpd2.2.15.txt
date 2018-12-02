@@ -1,0 +1,82 @@
+[root@skylovers app]# yum remove httpd.x86_64
+Loaded plugins: fastestmirror, refresh-packagekit, security
+Setting up Remove Process
+Resolving Dependencies
+--> Running transaction check
+---> Package httpd.x86_64 0:2.2.15-47.el6.centos will be erased
+--> Processing Dependency: httpd-mmn = 20051115 for package: php-5.3.3-46.el6_6.x86_64
+--> Processing Dependency: httpd-mmn = 20051115 for package: mod_wsgi-3.2-7.el6.x86_64
+--> Processing Dependency: httpd-mmn = 20051115 for package: 1:mod_ssl-2.2.15-47.el6.centos.x86_64
+--> Processing Dependency: httpd-mmn = 20051115 for package: mod_perl-2.0.4-11.el6_5.x86_64
+--> Processing Dependency: httpd >= 2.2.0 for package: gnome-user-share-2.28.2-3.el6.x86_64
+--> Processing Dependency: httpd = 2.2.15-47.el6.centos for package: httpd-manual-2.2.15-47.el6.centos.noarch
+--> Processing Dependency: httpd for package: webalizer-2.21_02-3.3.el6.x86_64
+--> Processing Dependency: httpd for package: 1:mod_ssl-2.2.15-47.el6.centos.x86_64
+--> Processing Dependency: httpd = 2.2.15-47.el6.centos for package: 1:mod_ssl-2.2.15-47.el6.centos.x86_64
+--> Processing Dependency: httpd for package: piranha-0.8.6-4.el6_5.2.x86_64
+--> Running transaction check
+---> Package gnome-user-share.x86_64 0:2.28.2-3.el6 will be erased
+---> Package httpd-manual.noarch 0:2.2.15-47.el6.centos will be erased
+---> Package mod_perl.x86_64 0:2.0.4-11.el6_5 will be erased
+---> Package mod_ssl.x86_64 1:2.2.15-47.el6.centos will be erased
+---> Package mod_wsgi.x86_64 0:3.2-7.el6 will be erased
+---> Package php.x86_64 0:5.3.3-46.el6_6 will be erased
+---> Package piranha.x86_64 0:0.8.6-4.el6_5.2 will be erased
+---> Package webalizer.x86_64 0:2.21_02-3.3.el6 will be erased
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+===================================================================================================================================================================================
+ Package                               Arch                        Version                                     Repository                                                     Size
+===================================================================================================================================================================================
+Removing:
+ httpd                                 x86_64                      2.2.15-47.el6.centos                        @updates                                                      2.9 M
+Removing for dependencies:
+ gnome-user-share                      x86_64                      2.28.2-3.el6                                @anaconda-CentOS-201508042137.x86_64/6.7                      1.1 M
+ httpd-manual                          noarch                      2.2.15-47.el6.centos                        @updates                                                      3.5 M
+ mod_perl                              x86_64                      2.0.4-11.el6_5                              @anaconda-CentOS-201508042137.x86_64/6.7                      6.1 M
+ mod_ssl                               x86_64                      1:2.2.15-47.el6.centos                      @updates                                                      187 k
+ mod_wsgi                              x86_64                      3.2-7.el6                                   @anaconda-CentOS-201508042137.x86_64/6.7                      177 k
+ php                                   x86_64                      5.3.3-46.el6_6                              @updates                                                      3.5 M
+ piranha                               x86_64                      0.8.6-4.el6_5.2                             @anaconda-CentOS-201508042137.x86_64/6.7                      5.0 M
+ webalizer                             x86_64                      2.21_02-3.3.el6                             @anaconda-CentOS-201508042137.x86_64/6.7                      324 k
+
+Transaction Summary
+===================================================================================================================================================================================
+Remove        9 Package(s)
+
+Installed size: 23 M
+Is this ok [y/N]: y
+Downloading Packages:
+Running rpm_check_debug
+Running Transaction Test
+Transaction Test Succeeded
+Running Transaction
+  Erasing    : httpd-manual-2.2.15-47.el6.centos.noarch                                                                                                                        1/9 
+  Erasing    : piranha-0.8.6-4.el6_5.2.x86_64                                                                                                                                  2/9 
+  Erasing    : php-5.3.3-46.el6_6.x86_64                                                                                                                                       3/9 
+  Erasing    : mod_wsgi-3.2-7.el6.x86_64                                                                                                                                       4/9 
+  Erasing    : webalizer-2.21_02-3.3.el6.x86_64                                                                                                                                5/9 
+  Erasing    : 1:mod_ssl-2.2.15-47.el6.centos.x86_64                                                                                                                           6/9 
+  Erasing    : gnome-user-share-2.28.2-3.el6.x86_64                                                                                                                            7/9 
+  Erasing    : mod_perl-2.0.4-11.el6_5.x86_64                                                                                                                                  8/9 
+  Erasing    : httpd-2.2.15-47.el6.centos.x86_64                                                                                                                               9/9 
+  Verifying  : mod_perl-2.0.4-11.el6_5.x86_64                                                                                                                                  1/9 
+  Verifying  : httpd-manual-2.2.15-47.el6.centos.noarch                                                                                                                        2/9 
+  Verifying  : php-5.3.3-46.el6_6.x86_64                                                                                                                                       3/9 
+  Verifying  : gnome-user-share-2.28.2-3.el6.x86_64                                                                                                                            4/9 
+  Verifying  : 1:mod_ssl-2.2.15-47.el6.centos.x86_64                                                                                                                           5/9 
+  Verifying  : piranha-0.8.6-4.el6_5.2.x86_64                                                                                                                                  6/9 
+  Verifying  : webalizer-2.21_02-3.3.el6.x86_64                                                                                                                                7/9 
+  Verifying  : mod_wsgi-3.2-7.el6.x86_64                                                                                                                                       8/9 
+  Verifying  : httpd-2.2.15-47.el6.centos.x86_64                                                                                                                               9/9 
+
+Removed:
+  httpd.x86_64 0:2.2.15-47.el6.centos                                                                                                                                              
+
+Dependency Removed:
+  gnome-user-share.x86_64 0:2.28.2-3.el6       httpd-manual.noarch 0:2.2.15-47.el6.centos       mod_perl.x86_64 0:2.0.4-11.el6_5       mod_ssl.x86_64 1:2.2.15-47.el6.centos      
+  mod_wsgi.x86_64 0:3.2-7.el6                  php.x86_64 0:5.3.3-46.el6_6                      piranha.x86_64 0:0.8.6-4.el6_5.2       webalizer.x86_64 0:2.21_02-3.3.el6         
+
+Complete!

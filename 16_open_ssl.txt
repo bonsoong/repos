@@ -1,0 +1,39 @@
+### open ssl 설치 ###
+### 설치 디렉토리 : 
+#
+# 작성일 : 2016.01.30 
+# 작성인 : 구본숭
+
+
+
+Install the necessary libraries
+#yum install mod_ssl
+
+Create a directory to store the keys
+mkdir /etc/httpd/pki
+Create a self-signed certificate
+
+#openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/httpd/pki/apache.key -out /etc/httpd/pki/apache.crt
+You'll be asked to fill out a few fields. The most important line is "Common Name." Enter your official domain name here or, if you don't have one yet, enter your site's IP address.
+
+Edit the config file
+
+#vi /etc/httpd/conf.d/ssl.conf
+Scroll down until you find the VirtualHost _default_:443 section.
+
+Uncomment the DocumentRoot and ServerName lines.
+
+Change example.com in the ServerName line to either your domain name or server's IP address. Important: This needs to match the common name on the certificate.
+
+ServerName example.com:443
+Scroll down and ensure that SSL is configured with the following lines.
+
+SSLEngine on
+SSLCertificateFile /etc/httpd/pki/apache.crt
+SSLCertificateKeyFile /etc/httpd/pki/apache.key
+Save and exit.
+
+Restart Apache
+
+/etc/init.d/httpd restart
+That's it!

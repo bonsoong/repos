@@ -1,0 +1,308 @@
+[Centos] Subversion 설치 및 Apache 연동
+설치환경 : Centos 7.0 x64  
+설치버전 : 
+	subversion-1.7.14-10.el7.x86_64
+	subversion-libs-1.7.14-10.el7.x86_64
+설치전 확인사항 :
+설치일 : 2016.01.30
+
+0. 선행사항 
+[root@localhost]# rpm -qa | grep httpd
+[root@localhost]#yum install httpd httpd-devel
+
+1. 설치 확인 및 준비 사항
+[root@localhost]# rpm -qa | grep subversion
+[root@localhost]# yum install subversion
+[root@localhost]# yum install mod_dav_svn
+[root@localhost]# svn --version
+
+2. 계정 및 그룹 생성 
+[root@localhost]# adduser svn
+[root@localhost]# addgroup svn
+
+2. repository 생성 및 설정
+[root@localhost]# mkdir /data
+[root@localhost]# mkdir /data/svn
+[root@localhost]# cd data/svn
+[root@localhost]# svnadmin create --fs-type fsfs repos
+
+[root@localhost]# chmod -R g+w /data/svn/repos
+[root@localhost]# chown -R svn:svn /data/svn/repos
+[root@localhost]# cd /home/svn/repos/conf
+
+(1) svnserve.conf 파일 수정
+[root@localhost]# vim svnserve.conf
+#// 아래 내용이 주석으로 막혀 있다면, 주속을 풀어 준다.
+[general]
+anon-access=none
+auth-access=write
+password-db=passwd
+authz-db=authz
+realm=repos
+
+anon-access 익명 사용자 읽기권한 reacd,none
+auth-access 인증된 사용자 쓰기권한
+password-db 사용자 계정 파일 
+authz-db    svn 접근권한 설정 파일
+realm 	    svn 접속시 나타나는 메시지
+sasl 	    sasl 인증 프로토콜
+
+(2) passwd 수정
+[root@localhost]# vim passwd 
+[users]
+vincentgoo=dev12345
+devuser01=dev12345
+devuser02=dev12345
+devuser03=dev12345
+devuser04=dev12345
+devuser05=dev12345
+authz-db=authz
+
+(3) authz 설정
+[root@localhost]# vi authz
+
+[groups]
+usergroup=vincentgoo, devuser01, devuser02, devuser03, devuser04, devuser05
+[/]
+*=r
+[repos:/]
+@usergroup=rw
+*=r
+
+(4) svnserve 수정
+[root@localhost]# vi /etc/sysconfig/svnserve 
+#OPTIONS="--threads --root /home/svn --listen-port 3690"
+OPTIONS="--threads --root /home/svn"
+repository 디렉토리의 최상위 폴더를 지정한다.
+repos를 생성했으면, 그 바로 상위 폴더 svn을 지정한다.
+
+
+3. 서비스 시작
+[root@localhost]#systemctl start svnserve
+#컴파일해서 설치 한 경우에는 아래와 같이 실행한다.
+#[root@localhost]# svnserve -d -r /home/svn
+#포트지정 서비스 시작
+#[root@localhost]# svnserve -d -r /home/svn --listen-port 3690
+#서비스에 등록 되었을때
+#[root@localhost]# service svnserve start
+#label svn repository files as httpd_sys_content_rw_t:
+#chcon -R -t httpd_sys_content_rw_t /path/to/your/svn/repo
+#set selinux boolean httpd_unified --> on
+#setsebool -P httpd_unified=1
+I# prefer 2nd possibility. You can play also with other selinux booleans connected with httpd:
+#getsebool -a | grep httpd
+
+4.기본디렉토리 생성
+[root@localhost]# which vim  //vim 위치 확인
+/bin/vim
+[root@localhost]# export SVN_EDITOR=/bin/vim    //SVN 에디터 설정 /etc/profile 에 추가해도 됨
+[root@localhost]# svn mkdir svn://localhost/repos/trunk
+--이 줄 이하는 자동으로 제거 됩니다 --
+A     svn://localhost/truck
+
+~
+
+~ 로그 메시지가 변경되지 않았거나 지정되지 않았습니다
+취소(A),계속(C),수정(E): C
+인증 영역(realm): <svn://localhost:3690> MyTask Repository
+'root'의 암호:
+인증 영역(realm): <svn://localhost:3690> MyTask Repository
+사용자명:vincentgoo
+'svnuser'의 암호:
+커밋된 리비전 1.
+[root@localhost]# svn mkdir svn://localhost/repos/branches     //반복
+[root@localhost]# svn mkdir svn://localhost/repos/tags            //반복
+[root@localhost]# svn list svn://localhost/repos        //확인
+
+
+※ apache연동
+5.사용자 인증 패스워드 파일 생성 
+[root@localhost]# htpasswd -cm /etc/httpd/account_svn.passwd root      //최초 사용자 생성시 c옵션
+[root@localhost]# htpasswd -m /etc/httpd/account_svn.passwd vincentgoo //추가 user1
+
+6.Apache연동 모듈 설치 
+$ mod_dav_svn $
+[root@localhost]# yum install mod_dav_svn
+[root@localhost]# find / -name "*svn.so"
+/usr/lib/httpd/modules/mod_dav_svn.so     //32bit
+/usr/lib/httpd/modules/mod_authz_svn.so   
+/usr/lib64/httpd/module/mod_dav_svn.so    //64bit
+/usr/lib64/httpd/modules/mod_authz_svn.so   
+yum 으로 httpd가 설치된경우 자동으로 /etc/httpd/conf.d/subversion.conf 가 생성되고
+모듈이 자동 로드 되도록 설정 되어있음
+
+[root@localhost]# cp /usr/lib64/httpd/modules/*svn* /usr/local/apache2/modules
+[root@localhost]# vi /usr/local/apache2/conf/httpd.conf
+
+#include subversion configure     //subversion 모듈및 설정 추가
+include conf.d/svn.conf
+
+[root@localhost]# vim /etc/httpd/conf.d/svn.conf
+#CentOs 7.0에는 conf.modules.d 폴더에 해당 모듈이 추가 되어 있다.
+#LoadModule dav_svn_module   modules/mod_dav_svn.so
+#LoadModule authz_svn_module modules/mod_authz_svn.so
+Alias /repos /data/svn/repos
+<Location /repos>
+        DAV svn
+        SVNPath /data/svn/repos
+        SVNListParentPath On
+        AuthType Basic
+        AuthName "Vincentgoo first repository"
+#       AuthzSVNAccessFile /data/svn/repos/conf/authz
+        AuthUserFile /etc/httpd/account_svn.passwd
+        Require valid-user
+</Location>
+
+[root@localhost]# vim /etc/httpd/conf/httpd.conf
+# 서버 네임 설정
+ServerName vincentgoo.goanygate.com:80
+
+# 사용자와 그룹이 Demon이면 apache로 변경해 준다.
+# User apache
+# Group apache
+      
+7.설정확인
+[root@localhost]# systemctl restart svnserve
+[root@localhost]# systemctl restart httpd
+
+[root@localhost]# svn list http://localhost/repos
+
+8.svn 저장소 삭제
+[root@localhost]# rm -rf /data/svn/repos
+
+참고
+http://itnp.kr/roller/home/entry/centos_5_6%EC%97%90_subversion_13 
+http://zuriyang.tistory.com/57
+
+
+<VirtualHost svn.xxx.com:443>
+    ServerName svn.xxx.com
+    DocumentRoot /home/svn/
+
+  <Directory "/home/svn/">
+        AllowOverride None
+        Order allow,deny
+        Allow from all
+        Options None
+    </Directory>
+
+SSLEngine on
+SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+
+SSLCertificateFile /etc/pki/tls/certs/ca.crt
+SSLCertificateKeyFile /etc/pki/tls/private/ca.key
+
+<FilesMatch "\.(cgi|shtml|jsp|html|htm|php?)$">
+    SSLOptions +StdEnvVars
+</FilesMatch>
+
+SetEnvIf User-Agent ".*MSIE.*" \
+         nokeepalive ssl-unclean-shutdown \
+         downgrade-1.0 force-response-1.0
+
+CustomLog /var/log/httpd/ssl_request_log \
+          "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+
+
+#LoadModule dav_svn_module modules/mod_dav_svn.so
+#LoadModule authz_svn_module modules/mod_authz_svn.so
+Alias /svn /data/svn
+<Location /svn>
+        DAV svn
+        SVNParentPath /data/svn
+        AuthType Basic
+        AuthName "Vincentgoo first repository"
+        AuthzSVNAccessFile /data/svn/repos/conf/authz
+        AuthUserFile /var/www/account_svn.passwd
+        Require valid-user
+</Location>
+~               
+
+</VirtualHost>
+
+서버를 세팅하면서 가장 찾기 힘들었던 문제가 
+jenkins 연동을 위해 SVN을 apache로 연동하는것이었다.
+
+연동설정은 그렇게 어려운게 아니었는데
+아래의 오류때문에 문제였다
+
+<D:error xmlns:D="DAV:" xmlns:m="http://apache.org/dav/xmlns" xmlns:C="svn:">
+
+
+<C:error/>
+
+
+
+<m:human-readable errcode="13">
+
+Can't open directory '/media/svc/svn/repos': Permission denied
+
+</m:human-readable>
+
+</D:error>
+
+이 오류때문에 가장많이 반복했던 두가지는 파일소유변경과 접근권한변경이었다
+
+소유자 변경
+#chown -R apache.apache /media/svc/svn/repos
+
+접근권한변경
+#chmod -R 711 /media/svc/svn/repos
+
+
+하지만 여전히 동일하게 나오는 오류메시지 ㅠㅠ
+
+
+온갖 설정 다 건드려보다가
+결국 SELinux를 꺼보았는데 정상적으로 접근이 되었다.
+
+SELinux 설정을 좀더 조정해본다음 다시 켜둬야겠다
+
+SELinux 끄기
+echo 0 > /selinux/enforce
+SELinux 켜기
+echo 1 > /selinux/enforce
+
+ 
+
+ 
+
+그리고 httpd.conf파일에 AuthUserFile을 설정해서 접근했을때 아무리 htpasswd로 설정했던 계정과 암호를 입력해도 절대로 인증안되는 문제가 있었는데
+
+ 
+
+문제는 아래의 명령으로 계정을 만들때 "내가 설정한 경로"가 문제였다. 
+
+#htpasswd -cm /내가 설정한 경로/암호파일명 계정ID 
+
+ 
+
+
+암호파일을 만들때 "내가 설정한 경로" 대신
+
+/var/www/ 경로 아래에 폴더를 만들어서 생성하니까 문제해결!!!
+
+ 
+
+httpd가 기동될때 암호파일을 다른경로에 만들어두면 인식을 못하는것같다.
+
+다른 경로에 하려면 아마 PATH를 설정해줘야할듯
+
+[출처] SVN apache 설정 오류|작성자 세직사
+
+<Location /svn>
+   DAV svn
+   SVNParentPath /var/svn/repos
+   AuthzSVNAccessFile /var/svn/conf/authz
+   Require valid-user
+   AuthType Basic
+   AuthName "Authorization Realm"
+   AuthUserFile /var/svn/conf/passwd
+</Location>
+
+<Location /websvn>
+   Require valid-user
+   AuthType Basic
+   AuthName "Authorization Realm"
+   AuthUserFile /var/svn/conf/passwd
+</Location>

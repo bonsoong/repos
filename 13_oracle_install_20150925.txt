@@ -1,0 +1,428 @@
+[Oracle 설치]
+1. 의존 패키지 설치
+yum list compat-libstdc++-33.x86_64 binutils elfutils-libelf elfutils-libelf-devel
+yum list glibc glibc-common glibc-devel glibc-headers gcc gcc-c++ libaio-devel 
+yum list libaio libgcc libstdc++ libstdc++ make sysstat unixODBC unixODBC-devel 
+yum list unzip
+
+yum install compat-libstdc++-33.x86_64 binutils elfutils-libelf elfutils-libelf-devel
+yum install glibc glibc-common glibc-devel glibc-headers gcc gcc-c++ libaio-devel 
+yum install libaio libgcc libstdc++ libstdc++ make sysstat unixODBC unixODBC-devel 
+yum install unzip
+wget ftp://ftp.pbone.net/mirror/www.whiteboxlinux.org/whitebox/4/en/os/x86_64/WhiteBox/RPMS/pdksh-5.2.14-30.x86_64.rpm
+rpm -Uvh --nodeps pdksh-5.2.14-30.x86_64.rpm
+
+2. repository 복사
+# cd /etc/yum.repos.d
+# wget http://public-yum.oracle.com/public-yum-ol6.repo
+# wget http://public-yum.oracle.com/public-yum-ol7.repo
+
+3. Preinstall 설치
+
+[###중요###]
+[root@skylovers]# wget http://public-yum.oracle.com/RPM-GPG-KEY-oracle-ol6 -O /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+
+1) oracle-rdbms-server-11gR2-preinstall
+[root@skylovers]# yum install --nogpgcheck oracle-rdbms-server-11gR2-preinstall
+
+While importing GPG key, you might get “GPG key retrieval failed” error as shown below. Here, you need to import proper GPG key for your OS release.
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+GPG key retrieval failed: [Errno 14] Could not open/read file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+
+Download and verify the appropriate Oracle Linux GPG Key that best matches your RHEL/CentOS compatible OS release
+
+[root@skylovers yum.repos.d]# yum install oracle-rdbms-server-11gR2-preinstall
+Loaded plugins: fastestmirror, refresh-packagekit, security
+Setting up Install Process
+Loading mirror speeds from cached hostfile
+ * base: data.nicehosting.co.kr
+ * extras: data.nicehosting.co.kr
+ * updates: data.nicehosting.co.kr
+Resolving Dependencies
+--> Running transaction check
+---> Package oracle-rdbms-server-11gR2-preinstall.x86_64 0:1.0-12.el6 will be installed
+--> Processing Dependency: kernel-uek for package: oracle-rdbms-server-11gR2-preinstall-1.0-12.el6.x86_64
+--> Processing Dependency: ksh for package: oracle-rdbms-server-11gR2-preinstall-1.0-12.el6.x86_64
+--> Processing Dependency: libaio-devel for package: oracle-rdbms-server-11gR2-preinstall-1.0-12.el6.x86_64
+--> Running transaction check
+---> Package kernel-uek.x86_64 0:2.6.39-400.264.1.el6uek will be installed
+--> Processing Dependency: kernel-uek-firmware = 2.6.39-400.264.1.el6uek for package: kernel-uek-2.6.39-400.264.1.el6uek.x86_64
+---> Package ksh.x86_64 0:20120801-28.el6_7.3 will be installed
+---> Package libaio-devel.x86_64 0:0.3.107-10.el6 will be installed
+--> Running transaction check
+---> Package kernel-uek-firmware.noarch 0:2.6.39-400.264.1.el6uek will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+===================================================================================================================================================================================
+ Package                                                    Arch                         Version                                        Repository                            Size
+===================================================================================================================================================================================
+Installing:
+ oracle-rdbms-server-11gR2-preinstall                       x86_64                       1.0-12.el6                                     ol6_latest                            18 k
+Installing for dependencies:
+ kernel-uek                                                 x86_64                       2.6.39-400.264.1.el6uek                        ol6_UEK_latest                        28 M
+ kernel-uek-firmware                                        noarch                       2.6.39-400.264.1.el6uek                        ol6_UEK_latest                       3.7 M
+ ksh                                                        x86_64                       20120801-28.el6_7.3                            ol6_latest                           760 k
+ libaio-devel                                               x86_64                       0.3.107-10.el6                                 base                                  13 k
+
+Transaction Summary
+===================================================================================================================================================================================
+Install       5 Package(s)
+
+Total size: 33 M
+Installed size: 121 M
+Is this ok [y/N]: y
+Downloading Packages:
+warning: rpmts_HdrFromFdno: Header V3 RSA/SHA256 Signature, key ID ec551f03: NOKEY
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+Importing GPG key 0xEC551F03:
+ Userid: "Oracle OSS group (Open Source Software group) <build@oss.oracle.com>"
+ From  : /etc/pki/rpm-gpg/RPM-GPG-KEY-oracle
+Is this ok [y/N]: y
+Running rpm_check_debug
+Running Transaction Test
+Transaction Test Succeeded
+Running Transaction
+  Installing : ksh-20120801-28.el6_7.3.x86_64                                                                                                                                  1/5 
+  Installing : kernel-uek-firmware-2.6.39-400.264.1.el6uek.noarch                                                                                                              2/5 
+  Installing : kernel-uek-2.6.39-400.264.1.el6uek.x86_64                                                                                                                       3/5 
+  Installing : libaio-devel-0.3.107-10.el6.x86_64                                                                                                                              4/5 
+  Installing : oracle-rdbms-server-11gR2-preinstall-1.0-12.el6.x86_64                                                                                                          5/5 
+  Verifying  : libaio-devel-0.3.107-10.el6.x86_64                                                                                                                              1/5 
+  Verifying  : kernel-uek-firmware-2.6.39-400.264.1.el6uek.noarch                                                                                                              2/5 
+  Verifying  : ksh-20120801-28.el6_7.3.x86_64                                                                                                                                  3/5 
+  Verifying  : oracle-rdbms-server-11gR2-preinstall-1.0-12.el6.x86_64                                                                                                          4/5 
+  Verifying  : kernel-uek-2.6.39-400.264.1.el6uek.x86_64                                                                                                                       5/5 
+
+Installed:
+  oracle-rdbms-server-11gR2-preinstall.x86_64 0:1.0-12.el6                                                                                                                         
+
+Dependency Installed:
+  kernel-uek.x86_64 0:2.6.39-400.264.1.el6uek   kernel-uek-firmware.noarch 0:2.6.39-400.264.1.el6uek   ksh.x86_64 0:20120801-28.el6_7.3   libaio-devel.x86_64 0:0.3.107-10.el6  
+
+3. kernel Parameter 설정 점검
+vim /etc/sysctl.conf
+# Disable netfilter on bridges.
+#net.bridge.bridge-nf-call-ip6tables = 0
+#net.bridge.bridge-nf-call-iptables = 0
+#net.bridge.bridge-nf-call-arptables = 0
+ 
+kernel.shmall = 10523004
+kernel.shmmax = 6465333657
+kernel.shmmni = 4096
+kernel.sem = 250 32000 100 128
+ 
+fs.aio-max-nr = 1048576
+fs.file-max = 6815744
+ 
+net.ipv4.ip_local_port_range = 9000 65500
+ 
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048586
+
+4. 사용자 자원 제한 설정 점검
+vi /etc/security/limits.conf
+oracle  soft    nproc   2048
+oracle  hard    nproc   65536
+oracle  soft    nofile  1024
+oracle  hard    nofile  65536
+oracle  soft    stack   10240
+
+5. 사용자 보안 설정 점검
+vi /etc/pam.d/login
+session    required     pam_namespace.so 다음 라인에 아래의 내용을 추가합니다.
+session    required     pam_limits.so
+
+6. SELINUX 설정 해제su
+vi /etc/selinux/config
+SELINUX=permissive
+
+7. HostName 설정
+1) hostname 확인
+# hostname
+skylovers.kr
+
+2) 필요하다면 호스트 명 변경
+echo oracle > /proc/sys/kernel/hostname
+
+3) 영구적 호스트명 변경
+vim /etc/sysconfig/network
+HOSTNAME=oracle
+
+4) host 파일명 추가
+vim /etc/hosts
+127.0.0.1 oracle
+
+8. 사용자 계정 생성
+1) 사용자 계정 생성
+groupadd orainstall
+groupadd dba
+useradd -g orainstall -G dba oracle
+passwd oracle
+
+2) 권한 부여
+mkdir -p /app/oracle
+chown -R oracle:oinstall /app/oracle
+chmod -R 775 /app/oracle
+ 
+mkdir -p /app/oraInventory
+chown -R oracle:oinstall /app/oraInventory
+chmod -R 775 /app/oraInventory
+ 
+mkdir -p /data/database/oracle
+chown -R oracle:oinstall /data/database/oracle
+chmod -R 775 /data/database/oracle
+
+9. 환경 변수 설정
+export TMP=/tmp
+export TMPDIR=$TMP
+export ORACLE_BASE=/app/oracle
+export ORACLE_HOME=$ORACLE_BASE/product/11.2.0/db_1
+export ORACLE_HOME_LISTNER=$ORACLE_HOME/bin/lsnrctl
+export ORACLE_SID=ORCL
+export LD_LIBRARY_PATH=$ORACLE_HOME/lib:/lib:/usr/lib
+export PATH=$ORACLE_HOME/bin:$PATH
+
+1) 설치 중 오류 
+/app/oracle/product/11.2.0/db_1/ctx/lib/ins_ctx.mk
+vi /u01/app/oracle/product/11.2.0/dbhome_2/ctx/lib/ins_ctx.mk
+ctxhx: $(CTXHXOBJ)
+-static $(LINK_CTXHX) $(CTXHXOBJ) $(INSO_LINK) /usr/lib64/stdc.a
+I additionally had to patch the the ins_emagent.mk to link to the libnnz11 library:
+
+vi /u01/app/oracle/product/11.2.0/dbhome_2/sysman/lib/ins_emagent.mk
+Search for the line
+$(SYSMANBIN)emdctl:
+	$(MK_EMAGENT_NMECTL)
+Change it to:
+$(SYSMANBIN)emdctl:
+	$(MK_EMAGENT_NMECTL) -lnnz11
+
+[INS-20802] Oracle Net Configuration Assistant failed
+vim /etc/hosts
+127.0.0.1 localhost 추가
+
+10. 설치 후 콘솔 작업
+
+오라클 사용자로 변경합니다.
+
+Shell
+su - oracle
+아래의 설치 위치로 이동합니다.
+
+Shell
+cd $ORACLE_HOME/bin
+아래와 같이 sqlplus 명령을 실행합니다.
+
+Shell
+./sqlplus / as sysdba
+정상적으로 실행이 되면 아래와 같이 Oracle Console 메시지가 출력됩니다.
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jul 1 17:28:12 2013
+ 
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+ 
+Connected to:
+Oracle Database 11g Release 11.2.0.1.0 - 64bit Production
+ 
+SQL>
+또는 아래와 같이 실행이 가능합니다.
+
+Shell
+./sqlplus
+Enter user-name: 프롬프트가 나타나면 “/ as sysdba” 를 입력하여 콘솔에 접근 가능합니다.
+
+SQL*Plus: Release 11.2.0.1.0 Production on Mon Jul 1 17:29:23 2013
+ 
+Copyright (c) 1982, 2009, Oracle.  All rights reserved.
+ 
+Enter user-name: / as sysdba
+ 
+Connected to:
+Oracle Database 11g Release 11.2.0.1.0 - 64bit Production
+ 
+SQL>
+아래의 명령을 이용하여 instance 를 확인합니다.
+
+Transact-SQL
+select instance_name from v$instance;
+정상적으로 실행시 아래와 같이 SID 명이 출력됩니다.
+
+
+INSTANCE_NAME
+----------------
+ORCL
+아래의 명령을 이용하여 datafile 위치를 확인합니다.
+
+Transact-SQL
+select name from v$datafile;
+정상적으로 실행시 아래와 같이 datafile 의 위치가 출력됩니다.
+
+NAME
+--------------------------------------------------------------------------------
+/app/oracle/oradata/ORCL/system01.dbf
+/app/oracle/oradata/ORCL/sysaux01.dbf
+/app/oracle/oradata/ORCL/undotbs01.dbf
+/app/oracle/oradata/ORCL/users01.dbf
+/app/oracle/oradata/ORCL/example01.dbf
+Service 등록
+root 권한으로 변경합니다.
+
+Shell
+su - root
+아래의 파일을 편집합니다. oratab 파일은 Oracle 설치시 자동으로 생성되는 파일입니다.
+
+Shell
+vi /etc/oratab
+아래와 같이 해당 SID 의 끝문자열 “N” 을 “Y” 로 변경한 후 저장합니다.
+
+Shell
+ORCL:/app/oracle/product/11.2.0/db_1:Y
+oracle 사용자의 환경파일을 편집합니다.
+
+Shell
+vi /home/oracle/.bash_profile
+아래와 같이 SID 변수가 설정이 되어있는지 확인한 후 설정된 값이 없다면 입력후 저장합니다.
+
+Shell
+
+export ORACLE_SID=ORCL
+아래의 명령으로 시작 Shell Script 를 생성합니다.
+
+Shell
+vi /etc/init.d/oracle
+아래와 같이 내용을 작성한 후 저장합니다.
+
+Shell
+#!/bin/bash
+ 
+# oracle: Start/Stop Oracle Database 11g R2
+#
+# chkconfig: 345 90 10
+# description: The Oracle Database is an Object-Relational Database Management System.
+#
+# processname: oracle
+ 
+. /etc/rc.d/init.d/functions
+ 
+LOCKFILE=/var/lock/subsys/oracle
+ORACLE_HOME=/app/oracle/product/11.2.0/db_1
+ORACLE_USER=oracle
+ 
+case "$1" in
+'start')
+   if [ -f $LOCKFILE ]; then
+      echo $0 already running.
+      exit 1
+   fi
+   echo -n $"Starting Oracle Database:"
+   su - $ORACLE_USER -c "$ORACLE_HOME/bin/lsnrctl start"
+   su - $ORACLE_USER -c "$ORACLE_HOME/bin/dbstart $ORACLE_HOME"
+   su - $ORACLE_USER -c "$ORACLE_HOME/bin/emctl start dbconsole"
+   touch $LOCKFILE
+   ;;
+'stop')
+   if [ ! -f $LOCKFILE ]; then
+      echo $0 already stopping.
+      exit 1
+   fi
+   echo -n $"Stopping Oracle Database:"
+   su - $ORACLE_USER -c "$ORACLE_HOME/bin/lsnrctl stop"
+   su - $ORACLE_USER -c "$ORACLE_HOME/bin/dbshut"
+   su - $ORACLE_USER -c "$ORACLE_HOME/bin/emctl stop dbconsole"
+   rm -f $LOCKFILE
+   ;;
+'restart')
+   $0 stop
+   $0 start
+   ;;
+'status')
+   if [ -f $LOCKFILE ]; then
+      echo $0 started.
+      else
+      echo $0 stopped.
+   fi
+   ;;
+*)
+   echo "Usage: $0 [start|stop|status]"
+   exit 1
+esac
+ 
+exit 0
+아래의 명령으로 실행권한을 변경합니다.
+
+Shell
+chmod 755 /etc/init.d/oracle
+서비스 등록 스크립트를 등록하여 줍니다.
+
+Shell
+chkconfig --add oracle
+오라클 서비스 스크립트를 부팅시 자동으로 시작할 수 있도록 설정합니다.
+
+Shell
+chkconfig oracle on
+
+
+Trouble Shooting
+오라클 인스톨러 실행시 오류
+Shell
+
+Starting Oracle Universal Installer...
+
+Checking Temp space: must be greater than 120 MB.   Actual 41736 MB    Passed
+Checking swap space: must be greater than 150 MB.   Actual 15983 MB    Passed
+Checking monitor: must be configured to display at least 256 colors
+    >>> Could not execute auto check for display colors using command /usr/bin/xdpyinfo. Check if the DISPLAY variable is set.    Failed <<<<
+
+Some requirement checks failed. You must fulfill these requirements before
+
+continuing with the installation,
+
+Continue? (y/n) [n] n
+
+User Selected: No
+
+Exiting Oracle Universal Installer, log for this session can be found at /tmp/OraInstall2013-07-01_02-55-06PM/installActions2013-07-01_02-55-06PM.log
+Starting Oracle Universal Installer...
+ 
+Checking Temp space: must be greater than 120 MB.   Actual 41736 MB    Passed
+Checking swap space: must be greater than 150 MB.   Actual 15983 MB    Passed
+Checking monitor: must be configured to display at least 256 colors
+    >>> Could not execute auto check for display colors using command /usr/bin/xdpyinfo. Check if the DISPLAY variable is set.    Failed <<<<
+ 
+Some requirement checks failed. You must fulfill these requirements before
+ 
+continuing with the installation,
+ 
+Continue? (y/n) [n] n
+ 
+User Selected: No
+ 
+Exiting Oracle Universal Installer, log for this session can be found at /tmp/OraInstall2013-07-01_02-55-06PM/installActions2013-07-01_02-55-06PM.log
+root 계정으로 로그인 합니다.
+
+Shell
+su - root
+아래의 명령을 실행합니다.
+
+Shell
+xhost +SI:localuser:oracle
+정상적으로 실행시 아래와 같은 메시지가 나타납니다.
+
+localuser:oracle being added to access control list
+oracle 계정으로 변경하여 ./runInstaller 를 실행합니다.
+
+oracle, oracle 11g, oracle 11g install, oracle 11g 인스톨, oracle install, oracle installer, oui, 오라클, 오라클 설치
+
+
+/app/oraInventory/orainstRoot.sh
+/app/oracle/product/11.2.0/db_1/root.sh
+
+set oracle_sid to orcls
+/app/oracle/product/11.2.0/db_1/bin/emctl stop dbconsole
+/app/oracle/product/11.2.0/db_1/bin/emctl config emkey -repos -sysam_pwd < Password for SYSMAN user>
+/app/oracle/product/11.2.0/db_1/bin/emctl secure dbcondole -sysmain_pwd < Password for SYSMAN user>
+/app/oracle/product/11.2.0/db_1/bin/emctl start dbconsole

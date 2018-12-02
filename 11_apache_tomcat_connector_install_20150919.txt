@@ -1,0 +1,172 @@
+### tomcat connector 설치 ###
+### 설치 디렉토리 : 
+# /app
+# /app/tomcat-connectors-1.2.41-src
+# 작성일 : 2015.09.20 
+# 작성인 : 구본숭
+
+1. 선행 gcc 설치 : 컴파일 환경 설정 (gcc 환경이 없는 경우)
+yum -y install wget gcc gcc-c++ openssl-devel
+
+2. 압축해제
+cd /app
+tar -xvzf tomcat-connectors-1.2.41-src.tar.gz
+cd tomcat-connectors-1.2.41-src/native
+configue 
+
+3. 설치
+centos 7 : yum install httpd httpd-devel
+./configure --with-apxs=/bin/apxs
+make clean && make && make install
+
+
+centos 6.7
+apxs가 없는 경우 아래 명령 실행
+yum install httpd-devel
+
+./configure --with-apxs=/app/httpd/bin/apxs
+make && make install
+
+4. workers.properties 설정
+worker.list=skylovers
+worker.skylovers.port=8009
+worker.skylovers.host=localhost
+worker.skylovers.type=ajp13
+
+5. httpd-jk.conf 설정
+LoadModule jk_module modules/mod_jk.so
+<IfModule mod_jk.c>
+        JkWorkersFile "/usr/local/apache/conf/workers.properties"
+        JkLogFile "/usr/local/apache-tomcat-7.0.57/logs/mod_jk.log"
+        JkLogLevel info
+        JkAutoAlias "/usr/local/apache-tomcat-7.0.57/webapps"
+        JkMount /* skylovers
+        JkMount /*.jsp skylovers
+        JkMount /servlet/* skylovers
+        JkMount /examples/*.jsp skylovers
+        JkLogStampFormat "[%a %b %d %H:%M:%S %Y]"
+        JkOptions +ForwardKeySize +ForwardURICompat -ForwardDirectories
+        JkRequestLogFormat "%w %V %T"
+</IfModule>
+<!-- centos7 -->
+tomcat 위치 : /usr/share/tomcat/webapps
+lrwxrwxrwx. 1 root tomcat   11 12월 11 22:54 conf -> /etc/tomcat
+lrwxrwxrwx. 1 root tomcat   22 12월 11 22:54 lib -> /usr/share/java/tomcat
+lrwxrwxrwx. 1 root tomcat   15 12월 11 22:54 logs -> /var/log/tomcat
+lrwxrwxrwx. 1 root tomcat   22 12월 11 22:54 temp -> /var/cache/tomcat/temp
+lrwxrwxrwx. 1 root tomcat   23 12월 11 22:54 webapps -> /var/lib/tomcat/webapps
+lrwxrwxrwx. 1 root tomcat   22 12월 11 22:54 work -> /var/cache/tomcat/work
+
+selinux 를 disabled 해줍니다. 
+보안을 위한 옵션이긴 하지만, 여러가지 데몬을 설정하다보면 원인 불명의 에러를 일으키곤 합니다. 물론 이것저것 찾아서 옵션을 지정해주면 되지만, 일단 disabled 합니다. 
+
+# vi /etc/sysconfig/selinux 
+SELINUX=disabled  <- 요렇게 수정
+
+SELINUX=disabled로 수정 후 리눅스 시스템을 재부팅 해 준다.
+
+
+6. httpd 서버 실행
+service httpd start
+service tomcat start
+
+[root@localhost local]# cd /usr/local
+[root@localhost local]# wget http://apache.mirror.cdnetworks.com/tomcat/tomcat-connectors/jk/tomcat-connectors-1.2.40-src.tar.gz -O connector.tar.gz
+--2014-12-10 10:57:29--  http://apache.mirror.cdnetworks.com/tomcat/tomcat-connectors/jk/tomcat-connectors-1.2.40-src.tar.gz
+Resolving apache.mirror.cdnetworks.com... 61.110.198.174
+Connecting to apache.mirror.cdnetworks.com|61.110.198.174|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 1526449 (1.5M) [application/x-gzip]
+Saving to: `connector.tar.gz'
+ 
+100%[======================================>] 1,526,449   4.39M/s   in 0.3s
+ 
+2014-12-10 10:57:49 (4.39 MB/s) - `connector.tar.gz' saved [1526449/1526449]
+
+다운로드가 완료되었나요? 
+그럼 압축 해제를 한다음 
+컴파일 + 인스톨진행 하도록 하겠습니다.
+[root@localhost local]# tar -zxvf connector.tar.gz
+[root@localhost local]# cd tomcat-connectors-1.2.40-src/native/
+[root@localhost native]# ./configure -- --with-apxs=/usr/local/apache/bin/apxs
+[root@localhost native]# make && make install
+
+
+커넥터 설치가 완료되었다면 아파치 디렉토리내에 있는 "conf" 디렉토리로 이동합니다.
+[root@localhost native]# cd /usr/local/apache/conf/
+
+
+아파치와 톰캣을 연결해주는 중요 설정부분이므로 
+각 순서별로 진행하시면 되겠습니다.
+
+
+workers.properties 파일생성
+
+[root@localhost conf]# vi workers.properties
+workers.tomcat_home="/usr/local/apache-tomcat-7.0.57"
+workers.java_home="/usr/java/jdk1.7.0_72"
+ps=/
+worker.list=ajp13
+worker.ajp13.port=8009
+worker.ajp13.host=localhost
+worker.ajp13.type=ajp13
+
+workers.tomcat_home에 대입되는 경로는 
+톰캣디렉토리경로를 작성해주면 되겠습니다.
+
+workers.java_home에는 JDK의 디렉토리 설치경로를 
+작성해주시면 되겠고요.
+
+mod_jk.conf 파일생성
+[root@localhost conf]# vi mod_jk.conf
+<IfModule mod_jk.c>
+        JkWorkersFile "/usr/local/apache/conf/workers.properties"
+        JkLogFile "/usr/local/apache-tomcat-7.0.57/logs/mod_jk.log"
+        JkLogLevel info
+        JkAutoAlias "/usr/local/apache-tomcat-7.0.57/webapps"
+        JkMount /* ajp13
+        JkMount /*.jsp ajp13
+        JkMount /servlet/* ajp13
+        JkMount /examples/*.jsp ajp13
+        JkLogStampFormat "[%a %b %d %H:%M:%S %Y]"
+        JkOptions +ForwardKeySize +ForwardURICompat -ForwardDirectories
+        JkRequestLogFormat "%w %V %T"
+</IfModule>
+ 
+JkWorkersFile에는 workers.properties 파일경로를 작성해줍니다.
+ 
+JkLogFile의 경우는 톰캣의 로그디렉토리에 
+"mod_jk.log" 파일명을 선언해줍니다
+i( mod_jk.log 에 대한 파일명은 필수는 아닐거같군요.)
+
+이어서 conf디렉토리내에 존재하는 httpd.conf파일에 
+해당 코드들을 추가해주도록 합니다.
+
+
+httpd.conf 코드 추가i
+[root@localhost conf]# vi httpd.conf
+
+
+vi 실행 후 하단으로 좀 내리다보면
+ LoadModule이라고 여러개 선언되어있는 부분이 있는데 
+이 부분에 맨 끝라인 다음줄에 다음 코드를 추가해주도록 합니다.
+
+LoadModule jk_module modules/mod_jk.so
+
+httpd.conf 파일 맨 끝으로 내린 후, 
+코드를 추가해주도록 합니다.
+include conf/mod_jk.conf
+
+지금까지 했던 부분이 아파치와 톰캣 연동에 마지막 절차입니다.
+자 그럼 아파치와 톰캣서버를 각각 실행시켜주도록 해보겠습니다.
+아파치 실행
+[root@localhost local]# cd /usr/local/apache-tomcat-7.0.57/bin/
+[root@localhost bin]# ./startup.sh
+
+톰캣 실행
+[root@localhost bin]# cd /usr/local/apache/bin/
+[root@localhost bin]# ./apachectl start
+
+
+기존  80포트 접속시 "it works!" 라는 문구가 출력이 되었으나 
+톰캣커넥터 연동으로 인하여 하단과 동일한 실행화면이 출력될 것입니다.

@@ -1,0 +1,157 @@
+How To Install SVN With Apache dav_svn On CentOS 7
+Version: 1.0
+Last Edited: July 22, 2014
+ Follow howtoforge on Twitter
+1.1 SVN-An Overview
+
+Apache Subversion, which is commonly referred to in its abbreviated form as SVN, (named after the command name SVN) is a popular software versioning and revision control system which is distributed as a free software under the Apache License. Mainly used by developers to maintain present and historic file versions like documentation, source code, and web pages, it primarily aims to be a compatible successor to the extensively used CVS (Concurrent Versions System). As a matter of fact, the Subversion has been widely used by the free software community. This tutorial explains how to install and use SVN on CentOS 7.
+1.2 Step-by-Step Guide on the Installation and Use of SVN on CentOS 7
+
+Outlined below are the steps in the process of installing and using of SVN and mod_dav_svn on CentOS 7:
+1.2.1 Installing the Package
+
+To being the installation process, you need to install subversion and mod_dav_svn (this stands for the Apache httpd module for subversion server) using the following command:
+yum install httpd subversion mod_dav_svn
+
+
+ 
+These are generally provided by default CentOS Updates repository. Once this is done, you are now ready to move on to the next step.
+1.2.2 Configuring Subversion
+
+After installing the package, you must open the subversion httpd config file /etc/httpd/conf.modules.d/10-subversion.conf, and further edit it (as given below):
+vi /etc/httpd/conf.modules.d/10-subversion.conf
+
+LoadModule dav_svn_module     modules/mod_dav_svn.so
+LoadModule authz_svn_module   modules/mod_authz_svn.so
+LoadModule dontdothat_module  modules/mod_dontdothat.so
+
+##Add the following lines ##
+
+Alias /svn /var/www/svn
+<Location /svn>
+   DAV svn
+   SVNParentPath /var/www/svn/
+   AuthType Basic
+   AuthName "Subversion repositories"
+   AuthUserFile /etc/svn-auth-users
+   Require valid-user
+</Location>
+Whilst in the above configuration, you have set up Apache to load dav_svn_module, in addition to setting up a basic web authentication using htpasswd, the next step requires you to create a new user.
+1.2.3 Setting up a New User
+
+Here, you need to key in the following htpasswd command to create a new user:
+htpasswd -cm /etc/svn-auth-users john
+
+Please note that you must use the -c option for the first time to create the password file, as if you end up using it again, it will result in overwriting of the present file. Therefore, if you wish to add another user, you may give a miss to the -c option, and change the username using the m option, as explained below:
+htpasswd -m /etc/svn-auth-users jane
+
+The -m option makes use of MD5 encryption for passwords.
+1.2.4 Creating and Configuring Subversion Repository
+
+As the next step, you need to create a directory and use svnadmin to create the repository structure (as shown below). This is actually where your subversion repositories will be parked, hence this remains an important step.
+mkdir /var/www/svn
+cd /var/www/svn/
+svnadmin create repo
+chown -R apache.apache repo/
+
+If SELinux is enabled on your server, then allow access to our repository "repo" with these commands.
+chcon -R -t httpd_sys_content_t /var/www/svn/repo
+chcon -R -t httpd_sys_rw_content_t /var/www/svn/repo
+
+And open the http and https ports in the firewall
+firewall-cmd --permanent --zone=public --add-service=http
+firewall-cmd --permanent --zone=public --add-service=https
+firewall-cmd --reload
+
+Then enable apache to start at boot time restart it:
+systemctl enable httpd.service
+systemctl restart httpd.service
+
+1.2.5 Checking from the Browser
+
+Upon completion of the above step, you must check the following path using the browser: http://localhost/svn/repo This should throw up an authentication dialog where you need to key in the login credentials you created using the htpasswd command earlier. Upon filling in all the details in a correct manner, you shall be led to an empty repository. Once the empty repository has been created, you may to move on to the next step which requires managing the repositories..
+1.2.6 Managing Repositories
+
+The steps below explain the process of managing repositories.
+1.2.6 (a) Creating a Repository
+In order to learn the end-to-end process of managing repositories, you must begin with creating a sample repository. Firstly, you must set up a directory and place all your contents in there (as explained below), and you may subsequently import those to svn:
+cd /tmp
+mkdir firstproject
+cd firstproject
+
+
+As a test, we create some file shere
+touch testfile1 testfile2
+
+The above step gets you started by creating a sample repository of files. You must now gear up for the next step.
+1.2.6 (b) Importing Directory Contents to SVN
+
+The following SVN import command shall enable you to import the contents of the repository created in the previous step:
+svn import -m "Initial repository" /tmp/firstproject file:///var/www/svn/repo/firstproject 
+
+Adding         /tmp/firstproject/file1
+Adding         /tmp/firstproject/file2
+This will lead to importing of directory contents to SVN.
+1.2.6 (c) Committed Revision 1
+
+At this point, if you browse to the following link, it will lead you to the revised repository, as required.
+1.2.6 (d) Checking SVN Information
+
+You may access the SVN information of your project using the following command:
+svn info http://localhost/svn/repo/firstproject --username john
+
+The above command shall give you access to the complete SVN information of your project, as desired.
+1.2.6 (e) Checking out Sources
+
+For checking out sources, you need to use the following command:
+mkdir /tmp/myfirstproject
+svn co http://localhost/svn/repo/firstproject /tmp/myfirstproject --username jane
+This shall enable you to check the sources.
+1.2.6 (f) Committing Sources
+
+If, as part of the previous step, you have made a few modifications to the checked out sources, you have the option to commit it back to subversion by using the following command:
+cd /tmp/myfirstproject
+touch file3
+svn add file3 --username bob
+svn commit -m "Added a new file" --username john
+
+The above command shall help you put the copy back to the subversion post changes in the checked sources.
+1.2.6 (g) Checking Logs
+
+If you wish to check the log for details, all you need to do is simply key in the following command:
+svn log http://localhost/svn/repo/firstproject --username john
+
+You may also check the SVN man page for a more detailed log analysis.
+Links
+
+Apache
+Subversion
+ view as pdf |  print
+Share this page: 
+7 Comment(s)
+Add comment
+Name * 
+Email * 
+ 
+
+
+p
+
+Submit comment
+Comments
+
+From: taplinb Reply  
+Great post! The examples executed flawlessly and got me started. -Brad
+From: Jonesy Reply  
+Unless I uncommented the "Alias /svn ..." line in 10-subversion.conf, TortoiseSVN would fail on checkout due to a "redirect cycle" error.  The repositories worked fine via a browser so it may have been something else in my distro's apache config but just FYI.  Might save someone else an hour of head bashing...
+From: user01 Reply  
+you really did help me thanks a lot. but I saw ur comment after my head bashing :D
+From: Simon Reply  
+Good spot. Already spent an hour or two trying to figure that out, but I guess I would have spent one or two more.
+From: Quin Reply  
+Great post! I'm having one problem though--my repository won't come up on my browser. It just says the webpage is unavailable--it won't even ask for my username/password. It appears to be working in Putty (that's the ssh console I'm using), as my log appears when I put in the last command, but for some reason it won't work on my browser. Any help would be much appreciated. Thanks so much!
+P.S. Just FYI I am using Centos 7, Putty, and Windows 8. I tried both Google Chrome and IE for browsers; neither worked.
+From: Rajesh Reply  
+Hi Quin, did you make it work? I am having the same problem..any ideas ?
+From: Smail HSSIN Reply  
+  Hello, Thank you very warmly!   Smail HSSIN

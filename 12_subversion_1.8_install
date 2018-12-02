@@ -1,0 +1,178 @@
+### subversion 설치 ###
+### 설치 디렉토리 : 
+# /app
+# /app/tomcat-connectors-1.2.41-src
+# 작성일 : 2015.09.21
+# 작성인 : 구본숭
+[컴파일 설치]
+test -d /app/include/subversion-1 || \
+	  /usr/bin/install -c -d /app/include/subversion-1
+(subversion/svnversion/svnversion . 2> /dev/null ||  \
+	 svnversion . 2> /dev/null ||                        \
+	 echo "unknown";                                                 \
+	) > /app/include/subversion-1/svn-revision.txt
+
+1. 압축 풀기
+cd app
+tar -xvzf subversion-1.8.14.tar.gz
+
+2. 의존 패키지 설정
+./get-deps.sh 
+혹은 의존 패이지 복사 
+[패키지 설치]
+1. svn package download
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/mod_dav_svn-1.8.14-1.x86_64.rpm
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/serf-1.3.2-2.x86_64.rpm
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/subversion-1.8.4-2.x86_64.rpm
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/subversion-gnome-1.8.4-2.x86_64.rpm
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/subversion-javahl-1.8.4-2.x86_64.rpm
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/subversion-perl-1.8.4-2.x86_64.rpm
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/subversion-python-1.8.4-2.x86_64.rpm
+wget -c http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/x86_64/subversion-tools-1.8.4-2.x86_64.rpm
+
+##svn 1.7 download
+wget http://opensource.wandisco.com/rhel/6/svn-1.7/RPMS/x86_64/mod_dav_svn-1.7.13-1.x86_64.rpm
+wget http://opensource.wandisco.com/rhel/6/svn-1.7/RPMS/x86_64/subversion-1.7.13-1.x86_64.rpm
+wget http://opensource.wandisco.com/rhel/6/svn-1.7/RPMS/x86_64/subversion-tools-1.7.13-1.x86_64.rpm
+ 
+##svn 1.8 download
+wget http://opensource.wandisco.com/rhel/6/svn-1.8/RPMS/x86_64/mod_dav_svn-1.8.5-1.x86_64.rpm
+wget http://opensource.wandisco.com/rhel/6/svn-1.8/RPMS/x86_64/subversion-1.8.5-1.x86_64.rpm
+wget http://opensource.wandisco.com/rhel/6/svn-1.8/RPMS/x86_64/subversion-tools-1.8.5-1.x86_64.rpm
+## 1.8 부터 svn 이 사용하는 HTTP client library 가 serf 로 변경되서 필요
+wget http://opensource.wandisco.com/rhel/6/svn-1.8/RPMS/x86_64/serf-1.3.2-2.x86_64.rpm
+## install package
+yum localinstall mod_dav_svn* subversion*
+
+2. 설치
+rpm -ivh *.rpm
+
+3. 설치 확인
+svn --version
+
+[yum을 이용해서 설치하기]
+1. /etc/yum.repos.d/Wandisco-svn.repo  작성
+
+For CentOS/RHEL 7 Users:
+[WandiscoSVN]
+name=Wandisco SVN Repo
+baseurl=http://opensource.wandisco.com/centos/7/svn-1.8/RPMS/$basearch/
+enabled=1
+gpgcheck=0
+
+For CentOS/RHEL 6 Users:
+[WandiscoSVN]
+name=Wandisco SVN Repo
+baseurl=http://opensource.wandisco.com/centos/6/svn-1.8/RPMS/$basearch/
+enabled=1
+gpgcheck=0
+For CentOS/RHEL 5 Users:
+
+[WandiscoSVN]
+name=Wandisco SVN Repo
+baseurl=http://opensource.wandisco.com/centos/5/svn-1.8/RPMS/$basearch/
+enabled=1
+gpgcheck=0
+
+2. 설치
+yum install subversion mod_dav_svn
+
+3. 버전 확인
+svn --version
+
+[svn 설정]
+1. Repository 설정
+[root@centos ~]#mkdir /home/svn
+[root@centos ~]# svnadmin create --fs-type fsfs /home/svn/repos
+[root@centos ~]# chmod -R g+w  /home/svn/repos
+[root@centos ~]# chown -R apache:apache /home/svn/repos
+
+2. svnserve.conf 설정
+[root@centos ~]# vim /home/svn/repos/conf/svnserve.conf
+[general]
+anon-access = none
+auth-access = write
+password-db = passwd
+authz-db=authz
+realm="welcome SVN"
+
+3. passwd 설정
+[root@centos ~]$ vim /home/svn/repos/conf/passwd
+[user]
+vincentgoo=password
+devuser01=password
+devuser02=password
+
+4. authz  설정
+[group]
+devgroup=root,vincentgoo,devuser01,devuser02
+[repos:/]
+@devgroup=rw
+*=r
+
+5. 서버 기동
+[root@centos ~]# svnserve -d -r /home/svn/repos
+
+6. SVN 서버 확인
+[root@centos ~]# svn checkout svn://127.0.0.1/repos
+
+7. 기본 디렉토리 만들기
+ - 기본으로 사용될 폴더를 생성합니다. 코멘트가 있으면 작성하고 저장후 닫습니다.
+  없으면 ":q!" 눌러서 종료하고 계속(C) 눌러줍니다. 영문으로 'y or n or yes or no' 입력시 안되면 '예' 라고 입력하자
+
+ svn 사용자로 인증 받자.
+[root@centos ~]# export SVN_EDITOR=/usr/bin/vim
+[root@centos ~]# svn mkdir svn://127.0.0.1/repos/trunk
+[root@centos ~]# svn mkdir svn://127.0.0.1/repos/branches
+[root@centos ~]#  svn mkdir svn://127.0.0.1/repos/tags
+
+8. SVN 구성 확인
+[root@centos ~]# svn list svn://127.0.0.1/repos
+branches/
+tags/
+trunk/
+
+9. 자동실행
+vim /etc/rc.d/rc.local
+svnserve -d -r /home/svn --listen-host=0.0.0.0 //rc.local 파일에 이 명령어 추가
+
+10. 정지 
+# ps -enf | grep svnserve
+29373 ?        00:00:00 svnserve
+그다음 해당 process 를 죽인다.
+#kill -9 29373
+#killall svnserve
+
+[컴파일 설치]
+
+1. 압축 해제
+tar -xvzf subversion-1.9.1.tar.gz
+
+2 의존성 관련 파일 실행
+cd subversion-1.9.1
+./get-deps.sh
+
+1) apr 설치
+cd apr
+./buildconf
+./configure --prefix=/app/subversion-1.8.14/apr
+make && make install 
+
+2) apr-util 설치
+cd apr-util
+./buildconf
+./configure --prefix=/app/subversion-1.8.14/apr-util --with-apr=/app/subversion-1.8.14/apr
+
+2-1) scorn-2.3.1 설치 -> 생략
+## rpm -ivh scons-2.3.1-1.noarch.rpm
+## scons PREFIX=/app/serf APR=/app/subversion-1.8.14/apr APU=/app/subversion-1.8.14/apr
+## scons install 
+## scons -c
+
+3) subversion 설치
+./autogen.sh
+##./configure --prefix=/app/subversion --with-apr=apr --with-apr-util=apr-util  with-apr-iconv=apr-iconv --with-httpd=/app/httpd
+./configure --prefix=/app/subversion --with-apr=/app/apr --with-apr-util=/app/apr-util --enable-mod-activation --with-apache-libexecdir=/app/httpd/modules  --with-apxs=/app/httpd/bin/apxs
+
+3. 설정
+ㅇㅇ
