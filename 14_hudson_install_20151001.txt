@@ -1,0 +1,25 @@
+[허드슨 설치]
+1. 허드슨 최신 버전 다운로드
+1) 아래 사이트로 이동 최신 버전을 다운로드 받는다.
+http://hudson-ci.org/
+2) 2015년 10월 1일 현재 3.3.1 버전이 최신 버전이다.
+
+2. 허드슨 배포
+1) tomcat이 설치된 디렉토리로 이동한다.
+cd /app/tomcat/webapps
+
+2)다운로드 받은 허드슨 배포본의 이름을 변경 한다.
+[root@centos webapps]$ mv hudson-2.0.0.war hudson.war
+
+3) 레포지토리로 이용한 폴더를 생성한다.
+[root@centos webapps]$ mkdir /data
+[root@centos webapps]$ mkdir /data/hudson
+
+4) 폴더 소유자와 그룹을 tomcat으로 설정한다.
+[root@centos webapps]$ chown tomcat.tomcat /data/hudson
+
+3. 톰켓 서비스 재시작
+service tomcat restart
+
+4. 허드슨 실행 테스트
+http://localhost:8080/hudson
