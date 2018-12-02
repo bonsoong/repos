@@ -1,0 +1,51 @@
+htp://subversion.apache.org/packages.html
+
+문서는 아래의 블로그를 참고하였고, 부족한부분들을 추가하여 작성한다.
+http://blog.jidolstar.com/82
+ 
+명령어를 입력하여 실행해보고 설치가 되어 있는지 확인한다.
+1. 설치환경
+1.1. svn 클라이언트
+ 명령어 : svn
+ 
+1.2. svn 서버
+ 명령어 : svnadmin, svnserve
+svnadmin : svn 레파지토리의 생성및 관리를 담당한다.
+svnserve : svn 서버를 가동시킨다.
+ 
+2. repository생성
+레파지토리들의 저장공간으로 사용할 폴더를 생성한다.
+저장경로 :  /home/svn
+ 
+ 
+2.1 repository를 생성한다.
+/home/svn/r1
+/home/svn/r2
+svn 하위로 여러게의 레파지토리를 생성할 수 있다.
+레파지 토리는 각각의 설정을 같는다.
+접속권한, 사용자설정등
+svnadmin create [옵션] [경로]
+svnadmin create --fs-type fsfs r1
+ 
+3. 서버가동
+start :  svnserve -d -r [경로]
+여기서 경로부분인데
+위를 예로 들면 /home/svn/r1
+이라는 레파지토리가 있다.
+여기서 /home/svn 까지만 입력한다.
+svn이라고 경로를 입력하면
+svn하위에 있는 폴더들은 하나의 레파지토리로 인식이 된다.
+그리고 그 폴더 하위에 있는 svn의 framework(폴더구조)을 확인하고
+설정파일들을 불러들여 서버를 올리는 것이다.
+ 
+stop : killall -9 svnserve
+ 
+ 
+나머지는 관련 링크를 참조
+ 
+리눅스프로그램을 설치하면서 느끼는 점이지만
+기본적이 os의 사용법을 모르면 정말 어렵다.. T.T
+[출처] linux svn 설치|작성자 용이
+
+크롬 플러그인 설정
+chrome://plugins/
